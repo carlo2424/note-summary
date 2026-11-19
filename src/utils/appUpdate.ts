@@ -4,7 +4,12 @@ import {
   shouldSkipServiceWorkerRegistration,
 } from './appRecovery'
 
-import { appStorageKey } from '../constants/storageScope'
+import {
+  appStorageKey,
+  readSharedGitHubToken,
+  writeSharedGitHubToken,
+} from '../constants/storageScope'
+import { hydrateCloudCredentials } from './cloudBackup'
 
 const BUILD_KEY = appStorageKey('app-build')
 const LEGACY_BUILD_KEY = 'pwa-app-build'
@@ -72,6 +77,13 @@ export function isUpdateAvailable(remoteBuild: string | null): boolean {
   return remoteBuild !== appBuildId()
 }
 
+/** Dopo svuotamento cache PWA: token GitHub condiviso + copie ridondanti. */
+async function restoreSharedGitHubTokenAfterCachePurge(): Promise<void> {
+  const token = readSharedGitHubToken()
+  if (token) writeSharedGitHubToken(token)
+  await hydrateCloudCredentials()
+}
+
 async function purgeAppShellCache(): Promise<void> {
   if ('serviceWorker' in navigator) {
     try {
@@ -125,6 +137,7 @@ export async function ensureAppShellRevision(): Promise<'reload' | 'continue'> {
 
   localStorage.setItem(SHELL_REVISION_KEY, APP_SHELL_REVISION)
   await purgeAppShellCache()
+  await restoreSharedGitHubTokenAfterCachePurge()
   return prev != null ? 'reload' : 'continue'
 }
 
@@ -139,6 +152,7 @@ export async function prepareAppUpdate(): Promise<'reload' | 'continue'> {
   if (!remote) {
     if (stored && stored !== embedded) {
       await purgeAppShellCache()
+      await restoreSharedGitHubTokenAfterCachePurge()
       return 'reload'
     }
     if (!stored) localStorage.setItem(BUILD_KEY, embedded)
@@ -149,6 +163,7 @@ export async function prepareAppUpdate(): Promise<'reload' | 'continue'> {
     localStorage.setItem(BUILD_KEY, remote)
     localStorage.removeItem(LEGACY_BUILD_KEY)
     await purgeAppShellCache()
+    await restoreSharedGitHubTokenAfterCachePurge()
     return 'reload'
   }
 
@@ -156,13 +171,23 @@ export async function prepareAppUpdate(): Promise<'reload' | 'continue'> {
   return 'continue'
 }
 
-/** Aggiornamento manuale da Impostazioni: cache + reload senza bloccare IndexedDB. */
-export async function forceAppUpdateAndReload(): Promise<void> {
+async function purgeAppCacheAndMaybeReload(reload: boolean): Promise<void> {
   const remote = await fetchRemoteBuildId()
   if (remote) localStorage.setItem(BUILD_KEY, remote)
   else localStorage.removeItem(BUILD_KEY)
   await purgeAppShellCache()
-  reloadWithCacheBust()
+  await restoreSharedGitHubTokenAfterCachePurge()
+  if (reload) reloadWithCacheBust()
+}
+
+/** Aggiornamento manuale da Impostazioni: cache + reload senza bloccare IndexedDB. */
+export async function forceAppUpdateAndReload(): Promise<void> {
+  await purgeAppCacheAndMaybeReload(true)
+}
+
+/** Pulizia cache PWA (menu/file vecchi). Note, token GitHub e gist restano. */
+export async function clearAppShellCacheFromSettings(): Promise<void> {
+  await purgeAppCacheAndMaybeReload(true)
 }
 
 /** Se online c'è una build più recente del bundle installato, svuota cache e ricarica. */
@@ -174,6 +199,7 @@ export async function applyRemoteUpdateIfNeeded(): Promise<boolean> {
 
   localStorage.setItem(BUILD_KEY, remote)
   await purgeAppShellCache()
+  await restoreSharedGitHubTokenAfterCachePurge()
   reloadWithCacheBust()
   return true
 }

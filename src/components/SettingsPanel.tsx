@@ -15,6 +15,7 @@ import { FileImportPanel } from './FileImportPanel'
 import { AreaGroupsSettings } from './AreaGroupsSettings'
 import {
   appBuildLabel,
+  clearAppShellCacheFromSettings,
   fetchRemoteBuildId,
   forceAppUpdateAndReload,
   isUpdateAvailable,
@@ -113,21 +114,40 @@ export function SettingsPanel({ onBackupDone }: SettingsPanelProps) {
           </p>
         )}
         <p className="mt-1 text-xs text-slate-400">
-          Se vedi ancora la versione vecchia, usa il pulsante qui sotto. I tuoi
-          dati locali non vengono cancellati.
+          Se vedi ancora la versione vecchia, usa i pulsanti qui sotto. Note,
+          dati e token GitHub non vengono cancellati.
         </p>
         <p className="mt-2 text-xs text-slate-500">
           Menu corretto di <strong>Note Summary</strong>: Home · Note ·
           Calendario · Trading · Crypto · Archivio —{' '}
           <strong>senza Spese</strong>.
         </p>
-        <button
-          type="button"
-          onClick={() => void forceAppUpdateAndReload()}
-          className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          Scarica ultima versione
-        </button>
+        <div className="mt-3 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => void forceAppUpdateAndReload()}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Scarica ultima versione
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (
+                !window.confirm(
+                  'Pulizia cache dell’app (file e menu vecchi)?\n\n' +
+                    'Restano: note, impegni, token GitHub e altre impostazioni.',
+                )
+              ) {
+                return
+              }
+              void clearAppShellCacheFromSettings()
+            }}
+            className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100"
+          >
+            Pulizia cache
+          </button>
+        </div>
       </section>
     </div>
   )
