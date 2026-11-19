@@ -120,7 +120,7 @@ export interface ArchiveItem {
 
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-class PersonalNotesDB extends Dexie {
+class NoteSummaryDB extends Dexie {
   notes!: EntityTable<Note, 'id'>
   expenses!: EntityTable<Expense, 'id'>
   archive!: EntityTable<ArchiveItem, 'id'>
@@ -131,7 +131,7 @@ class PersonalNotesDB extends Dexie {
   areas!: EntityTable<Area, 'id'>
 
   constructor() {
-    super('PersonalNotesDB')
+    super('NoteSummaryDB')
 
     this.version(1).stores({
       notes: '++id, title, createdAt, updatedAt',
@@ -359,12 +359,12 @@ class PersonalNotesDB extends Dexie {
 }
 
 function createDB() {
-  return new PersonalNotesDB()
+  return new NoteSummaryDB()
 }
 
 /** Cancella e ricrea il DB (usato solo in caso di errore critico) */
 export async function resetDB() {
-  await Dexie.delete('PersonalNotesDB')
+  await Dexie.delete('NoteSummaryDB')
   await clearPwaCache()
   window.location.reload()
 }

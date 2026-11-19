@@ -1,7 +1,9 @@
-const META_DB_NAME = 'note-personali-backup-meta'
+import { appStorageKey } from '../constants/storageScope'
+
+const META_DB_NAME = 'note-summary-backup-meta'
 const META_DB_VERSION = 1
-const HANDLE_KEY = 'export'
-const OPFS_FILE = 'note-personali-backup-latest.json'
+const HANDLE_KEY = appStorageKey('export-handle')
+const OPFS_FILE = 'note-summary-backup-latest.json'
 
 type WritableFileHandle = FileSystemFileHandle & {
   queryPermission?(descriptor: {

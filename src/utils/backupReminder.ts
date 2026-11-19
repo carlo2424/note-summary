@@ -1,7 +1,9 @@
-const ENABLED_KEY = 'pwa-backup-reminder-enabled'
-const LAST_BACKUP_KEY = 'pwa-backup-last-at'
-const SNOOZE_UNTIL_KEY = 'pwa-backup-snooze-until'
-const FIRST_SEEN_KEY = 'pwa-backup-first-seen'
+import { appStorageKey } from '../constants/storageScope'
+
+const ENABLED_KEY = appStorageKey('backup-reminder-enabled')
+const LAST_BACKUP_KEY = appStorageKey('backup-last-at')
+const SNOOZE_UNTIL_KEY = appStorageKey('backup-snooze-until')
+const FIRST_SEEN_KEY = appStorageKey('backup-first-seen')
 
 /** Giorni tra un backup e il promemoria successivo */
 export const BACKUP_REMINDER_INTERVAL_DAYS = 7

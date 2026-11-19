@@ -1,3 +1,4 @@
+import { appStorageKey } from '../constants/storageScope'
 import { localIsoFromDate } from './calendarMarkers'
 
 /**
@@ -10,11 +11,11 @@ export const GOOGLE_CALENDAR_SCOPE =
   'https://www.googleapis.com/auth/calendar.readonly'
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
-const CLIENT_ID_KEY = 'pwa-google-calendar-client-id'
-const TOKEN_KEY = 'pwa-google-calendar-token'
-const CONNECTED_KEY = 'pwa-google-calendar-connected'
-const CACHE_KEY = 'pwa-google-calendar-cache'
-const ERROR_KEY = 'pwa-google-calendar-error'
+const CLIENT_ID_KEY = appStorageKey('google-calendar-client-id')
+const TOKEN_KEY = appStorageKey('google-calendar-token')
+const CONNECTED_KEY = appStorageKey('google-calendar-connected')
+const CACHE_KEY = appStorageKey('google-calendar-cache')
+const ERROR_KEY = appStorageKey('google-calendar-error')
 const MAX_RESULTS = 20
 
 export type GoogleCalendarEvent = {

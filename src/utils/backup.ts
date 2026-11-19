@@ -1,3 +1,4 @@
+import { appStorageKey } from '../constants/storageScope'
 import { db } from '../db'
 import { updateDataFingerprint } from './dataFingerprint'
 import {
@@ -478,7 +479,7 @@ export async function getLatestLocalChangeMs(): Promise<number> {
  * automaticamente prima di mostrare l'app.
  * ------------------------------------------------------------------------- */
 
-const AUTO_SNAPSHOT_KEY = 'pwa-auto-backup-v1'
+const AUTO_SNAPSHOT_KEY = appStorageKey('auto-backup-v1')
 /** Limite prudente per localStorage (~5 MB totali per origine). */
 const AUTO_SNAPSHOT_MAX_BYTES = 4_500_000
 

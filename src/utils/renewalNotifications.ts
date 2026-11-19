@@ -2,8 +2,10 @@ import { db } from '../db'
 import { isRecurringCommitment } from './recurring'
 import { countdownLabel, daysUntil } from './countdown'
 
-const ENABLED_KEY = 'pwa-renewal-notif-enabled'
-const SENT_KEY = 'pwa-renewal-notif-sent'
+import { appStorageKey } from '../constants/storageScope'
+
+const ENABLED_KEY = appStorageKey('renewal-notif-enabled')
+const SENT_KEY = appStorageKey('renewal-notif-sent')
 
 /** Giorni prima del rinnovo in cui inviare promemoria */
 const REMINDER_DAYS = [3, 1, 0]

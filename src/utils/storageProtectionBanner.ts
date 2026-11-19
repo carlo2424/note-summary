@@ -1,4 +1,6 @@
-const DISMISS_KEY = 'pwa-storage-banner-dismissed'
+import { appStorageKey } from '../constants/storageScope'
+
+const DISMISS_KEY = appStorageKey('storage-banner-dismissed')
 
 export function isStorageProtectionBannerDismissed(): boolean {
   return sessionStorage.getItem(DISMISS_KEY) != null

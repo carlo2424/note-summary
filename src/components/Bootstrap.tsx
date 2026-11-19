@@ -21,10 +21,11 @@ import {
   runCloudStartupSync,
 } from '../utils/cloudBackup'
 import { installAutoCloudSyncHooks, installPeriodicCloudReconcile } from '../utils/autoCloudSync'
+import { appStorageKey } from '../constants/storageScope'
 
-const TEXT_CASE_MIGRATED_KEY = 'textCaseMigratedV1'
-const NOTE_CHECKLIST_MIGRATED_KEY = 'noteChecklistMigratedV1'
-const EVENT_EXPENSE_DATE_KEY = 'eventExpenseChargeDateV8'
+const TEXT_CASE_MIGRATED_KEY = appStorageKey('textCaseMigratedV1')
+const NOTE_CHECKLIST_MIGRATED_KEY = appStorageKey('noteChecklistMigratedV1')
+const EVENT_EXPENSE_DATE_KEY = appStorageKey('eventExpenseChargeDateV8')
 const BOOT_TIMEOUT_MS = 12_000
 const BOOT_CLOUD_WAIT_MS = 10_000
 

@@ -4,7 +4,9 @@ import {
   shouldSkipServiceWorkerRegistration,
 } from './appRecovery'
 
-const BUILD_KEY = 'pwa-app-build'
+import { appStorageKey } from '../constants/storageScope'
+
+const BUILD_KEY = appStorageKey('app-build')
 
 export function appBuildId(): string {
   return import.meta.env.VITE_APP_BUILD ?? 'dev'

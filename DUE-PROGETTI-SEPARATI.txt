@@ -1,0 +1,45 @@
+═══════════════════════════════════════════════════════════════
+  DUE APP DISTINCTE — PWA Note Personali  e  Note Summary
+═══════════════════════════════════════════════════════════════
+
+Sul telefono puoi avere DUE icone diverse. Non sono la stessa app.
+
+┌────────────────────┬──────────────────────────────────────────┐
+│ Note Personali     │ Home a sezioni, Spese, impegni famiglia │
+│                    │ https://carlo2424.github.io/pwa-note-personali/ │
+│ Icona             │ viola indaco (simbolo nota)              │
+│ Cartella PC       │ Desktop\pwa note personali                 │
+└────────────────────┴──────────────────────────────────────────┘
+
+┌────────────────────┬──────────────────────────────────────────┐
+│ Note Summary       │ Dashboard 4 card, Google Calendar,      │
+│                    │ Trading/Crypto (no Spese in fondo)      │
+│                    │ https://carlo2424.github.io/note-summary/ │
+│ Icona             │ griglia 2×2 pastello su sfondo scuro     │
+│ Cartella PC       │ Desktop\note summary                     │
+└────────────────────┴──────────────────────────────────────────┘
+
+IN COMUNE (voluto)
+  • Token GitHub Gist nelle Impostazioni: incollalo una volta;
+    le due app condividono solo quel token (non i dati).
+  • Stesso account GitHub, ma file gist diversi:
+    - note-personali-backup.json
+    - note-summary-backup.json
+
+SEPARATI (non si mescolano più sul telefono)
+  • Database sul dispositivo (cartelle diverse)
+  • Backup cloud (gist id dedicato per app)
+  • Nome e icona «Aggiungi a schermata Home»
+  • Menu in basso (Personali: Spese; Summary: Trading/Crypto)
+
+SE VEDI MENU O ICONE SBAGLIATE
+  1. Apri il link GIUSTO nel browser (vedi tabella sopra).
+  2. Elimina dalla Home l’icona vecchia.
+  3. Aggiungi di nuovo a schermata Home dal sito corretto.
+
+Dopo l’aggiornamento «due progetti», Note Summary usa un database
+nuovo (NoteSummaryDB). Se avevi solo dati locali nella vecchia
+installazione condivisa, usa Impostazioni → ripristina da gist
+oppure backup manuale.
+
+═══════════════════════════════════════════════════════════════

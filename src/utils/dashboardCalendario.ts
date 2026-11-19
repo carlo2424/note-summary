@@ -1,3 +1,4 @@
+import { appStorageKey } from '../constants/storageScope'
 import type { Event, Note } from '../db'
 import { filterEventImpegni, filterNoteImpegni } from './impegno'
 import {
@@ -20,7 +21,7 @@ export type CalendarioRow = {
   google?: GoogleCalendarEvent
 }
 
-const VISIBLE_KEY = 'pwa-dashboard-cal-visible'
+const VISIBLE_KEY = appStorageKey('dashboard-cal-visible')
 
 export function calendarioRowId(
   kind: CalendarioRowKind,

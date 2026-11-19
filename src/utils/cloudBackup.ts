@@ -9,6 +9,10 @@ import {
   type BackupPayload,
 } from './backup'
 import { pauseCloudSync, isCloudSyncPaused } from './cloudSyncPause'
+import {
+  SHARED_GITHUB_TOKEN_KEY,
+  appStorageKey,
+} from '../constants/storageScope'
 
 /**
  * Backup cloud gratuito su GitHub Gist (privato).
@@ -22,15 +26,16 @@ import { pauseCloudSync, isCloudSyncPaused } from './cloudSyncPause'
  * Sul dispositivo: una copia di riserva locale (sempre sostituita, non accumulata).
  */
 
-const TOKEN_KEY = 'pwa-cloud-gist-token'
-const GIST_ID_KEY = 'pwa-cloud-gist-id'
-const LAST_SYNC_KEY = 'pwa-cloud-last-sync'
-const OPFS_CREDS_FILE = 'pwa-cloud-creds.json'
-const OPFS_SYNC_META_FILE = 'pwa-cloud-sync-meta.json'
-const OPFS_MIRROR_FILE = 'pwa-cloud-mirror-backup.json'
-const SYNC_META_LS_KEY = 'pwa-cloud-sync-meta-v2'
-const LAST_APPLIED_EXPORT_KEY = 'pwa-cloud-last-applied-export'
-const CREDS_IDB_NAME = 'note-personali-cloud-creds'
+const TOKEN_KEY = SHARED_GITHUB_TOKEN_KEY
+const GIST_ID_KEY = appStorageKey('cloud-gist-id')
+const LEGACY_GIST_ID_KEY = 'pwa-cloud-gist-id'
+const LAST_SYNC_KEY = appStorageKey('cloud-last-sync')
+const OPFS_CREDS_FILE = 'note-summary-cloud-creds.json'
+const OPFS_SYNC_META_FILE = 'note-summary-cloud-sync-meta.json'
+const OPFS_MIRROR_FILE = 'note-summary-cloud-mirror-backup.json'
+const SYNC_META_LS_KEY = appStorageKey('cloud-sync-meta-v2')
+const LAST_APPLIED_EXPORT_KEY = appStorageKey('cloud-last-applied-export')
+const CREDS_IDB_NAME = 'note-summary-cloud-creds'
 const CREDS_IDB_VERSION = 1
 const CREDS_IDB_KEY = 'github'
 
@@ -231,7 +236,10 @@ export function getCloudToken(): string | null {
 }
 
 export function getCloudGistId(): string | null {
-  return localStorage.getItem(GIST_ID_KEY)
+  return (
+    localStorage.getItem(GIST_ID_KEY) ??
+    localStorage.getItem(LEGACY_GIST_ID_KEY)
+  )
 }
 
 export function getCloudLastSyncAt(): number | null {

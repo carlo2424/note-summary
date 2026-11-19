@@ -1,6 +1,7 @@
 import Dexie from 'dexie'
+import { appStorageKey } from '../constants/storageScope'
 
-const SW_BLOCKED_KEY = 'pwa-sw-blocked'
+const SW_BLOCKED_KEY = appStorageKey('sw-blocked')
 
 export function isServiceWorkerBlocked(): boolean {
   return localStorage.getItem(SW_BLOCKED_KEY) === '1'
@@ -67,7 +68,7 @@ export async function clearPwaCacheAndReload(): Promise<void> {
 
 /** Reset database + cache (ultima risorsa) */
 export async function resetAppData(): Promise<void> {
-  await Dexie.delete('PersonalNotesDB')
+  await Dexie.delete('NoteSummaryDB')
   await clearPwaCache()
   window.location.replace(recoveryUrl())
 }

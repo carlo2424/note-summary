@@ -1,6 +1,8 @@
 import { db } from '../db'
 
-const FINGERPRINT_KEY = 'pwa-data-fingerprint'
+import { appStorageKey } from '../constants/storageScope'
+
+const FINGERPRINT_KEY = appStorageKey('data-fingerprint')
 
 export interface DataFingerprint {
   notes: number
