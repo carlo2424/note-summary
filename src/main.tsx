@@ -5,6 +5,7 @@ import { installReloadPersistenceGuards } from './utils/autoCloudSync'
 import { Bootstrap } from './components/Bootstrap.tsx'
 import {
   applyAppUpdateReload,
+  ensureAppShellRevision,
   prepareAppUpdate,
   registerProductionServiceWorker,
   scheduleRemoteBuildChecks,
@@ -36,7 +37,13 @@ void clearPwaCacheInDev()
 installReloadPersistenceGuards()
 
 async function startApp(): Promise<void> {
-  const action = await prepareAppUpdate()
+  let action = await ensureAppShellRevision()
+  if (action === 'reload') {
+    applyAppUpdateReload()
+    return
+  }
+
+  action = await prepareAppUpdate()
   if (action === 'reload') {
     applyAppUpdateReload()
     return

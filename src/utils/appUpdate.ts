@@ -7,6 +7,35 @@ import {
 import { appStorageKey } from '../constants/storageScope'
 
 const BUILD_KEY = appStorageKey('app-build')
+const LEGACY_BUILD_KEY = 'pwa-app-build'
+
+/** Incrementa quando cambiano menu/layout shell: forza una pulizia cache PWA. */
+export const APP_SHELL_REVISION = 'nav-summary-v2'
+const SHELL_REVISION_KEY = appStorageKey('shell-revision')
+
+function appScopePath(): string {
+  const base = import.meta.env.BASE_URL || '/'
+  return base.endsWith('/') ? base : `${base}/`
+}
+
+function serviceWorkerBelongsToThisApp(
+  reg: ServiceWorkerRegistration,
+): boolean {
+  const base = appScopePath()
+  if (base === '/') return true
+  const needle = base.replace(/^\//, '').replace(/\/$/, '')
+  return reg.scope.includes(`/${needle}`)
+}
+
+function cacheBelongsToThisApp(cacheName: string): boolean {
+  const base = appScopePath()
+  if (base === '/') return true
+  const needle = base.replace(/^\//, '').replace(/\/$/, '')
+  return (
+    cacheName.includes(needle) ||
+    cacheName.includes('note-summary-google-fonts')
+  )
+}
 
 export function appBuildId(): string {
   return import.meta.env.VITE_APP_BUILD ?? 'dev'
@@ -47,7 +76,11 @@ async function purgeAppShellCache(): Promise<void> {
   if ('serviceWorker' in navigator) {
     try {
       const regs = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(regs.map((r) => r.unregister()))
+      await Promise.all(
+        regs
+          .filter(serviceWorkerBelongsToThisApp)
+          .map((r) => r.unregister()),
+      )
     } catch {
       // ignora
     }
@@ -55,7 +88,11 @@ async function purgeAppShellCache(): Promise<void> {
   if ('caches' in window) {
     try {
       const keys = await caches.keys()
-      await Promise.all(keys.map((k) => caches.delete(k)))
+      await Promise.all(
+        keys
+          .filter(cacheBelongsToThisApp)
+          .map((k) => caches.delete(k)),
+      )
     } catch {
       // ignora
     }
@@ -72,22 +109,45 @@ export function applyAppUpdateReload(): void {
   reloadWithCacheBust()
 }
 
+function readStoredBuildId(): string | null {
+  return (
+    localStorage.getItem(BUILD_KEY) ??
+    localStorage.getItem(LEGACY_BUILD_KEY)
+  )
+}
+
+/** Menu Note Summary (senza tab Spese): svuota cache obsoleta una tantum. */
+export async function ensureAppShellRevision(): Promise<'reload' | 'continue'> {
+  if (!import.meta.env.PROD) return 'continue'
+
+  const prev = localStorage.getItem(SHELL_REVISION_KEY)
+  if (prev === APP_SHELL_REVISION) return 'continue'
+
+  localStorage.setItem(SHELL_REVISION_KEY, APP_SHELL_REVISION)
+  await purgeAppShellCache()
+  return prev != null ? 'reload' : 'continue'
+}
+
 /** Confronta con version.json online: rileva deploy anche con bundle PWA in cache. */
 export async function prepareAppUpdate(): Promise<'reload' | 'continue'> {
   if (!import.meta.env.PROD) return 'continue'
 
+  const embedded = appBuildId()
+  const stored = readStoredBuildId()
+
   const remote = await fetchRemoteBuildId()
   if (!remote) {
-    const stored = localStorage.getItem(BUILD_KEY)
-    if (!stored) localStorage.setItem(BUILD_KEY, appBuildId())
+    if (stored && stored !== embedded) {
+      await purgeAppShellCache()
+      return 'reload'
+    }
+    if (!stored) localStorage.setItem(BUILD_KEY, embedded)
     return 'continue'
   }
 
-  const embedded = appBuildId()
-  const stored = localStorage.getItem(BUILD_KEY)
-
   if (embedded !== remote || (stored && stored !== remote)) {
     localStorage.setItem(BUILD_KEY, remote)
+    localStorage.removeItem(LEGACY_BUILD_KEY)
     await purgeAppShellCache()
     return 'reload'
   }

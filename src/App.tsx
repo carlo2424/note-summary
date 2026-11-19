@@ -503,7 +503,7 @@ function App() {
 
         <nav
           className="sticky bottom-0 z-30 border-t border-slate-200/80 bg-white/95 px-0.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-md"
-          aria-label="Navigazione principale"
+          aria-label="Menu Note Summary: Home, Note, Calendario, Trading, Crypto, Archivio"
         >
           <ul className="flex items-center justify-between">
             {ALL_SECTIONS.map((key) => {

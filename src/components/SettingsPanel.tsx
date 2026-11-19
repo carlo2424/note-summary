@@ -116,6 +116,11 @@ export function SettingsPanel({ onBackupDone }: SettingsPanelProps) {
           Se vedi ancora la versione vecchia, usa il pulsante qui sotto. I tuoi
           dati locali non vengono cancellati.
         </p>
+        <p className="mt-2 text-xs text-slate-500">
+          Menu corretto di <strong>Note Summary</strong>: Home · Note ·
+          Calendario · Trading · Crypto · Archivio —{' '}
+          <strong>senza Spese</strong>.
+        </p>
         <button
           type="button"
           onClick={() => void forceAppUpdateAndReload()}

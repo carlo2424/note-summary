@@ -1,0 +1,26 @@
+Se vedi le 4 card in alto ma sotto ancora Impegni/Spese, il telefono
+sta usando una vecchia copia in cache (PWA).
+
+FAI COSI' (Brave / Chrome):
+
+1) Apri SOLO questo link nel browser (non l'icona sulla Home):
+   https://carlo2424.github.io/note-summary/
+
+2) Controlla in alto: deve esserci scritto "Note Summary".
+   In basso devono esserci 6 voci: Home, Note, Calendario,
+   Trading, Crypto, Archivio (NO Spese).
+
+3) Impostazioni (ingranaggio) → "Scarica ultima versione".
+   Attendi il ricaricamento.
+
+4) Se non cambia:
+   - Brave: Impostazioni sito → Cancella dati SOLO per github.io
+     (oppure solo note-summary se il browser lo permette)
+   - Riapri il link al punto 1
+   - Aggiungi di nuovo a schermata Home (icona griglia 2×2)
+
+5) L'altra app resta sul link:
+   https://carlo2424.github.io/pwa-note-personali/
+   (menu con Spese, icona viola)
+
+Due icone = due link diversi. Non usare la stessa icona per entrambe.
