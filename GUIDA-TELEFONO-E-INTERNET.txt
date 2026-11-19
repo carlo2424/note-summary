@@ -1,0 +1,25 @@
+NOTE SUMMARY — sul telefono (anche fuori casa)
+============================================
+
+Indirizzo dell’app online (dopo il caricamento su GitHub):
+   https://carlo2424.github.io/note-summary/
+
+A. PRIMA VOLTA SU GOOGLE (2 minuti)
+   Apri le credenziali OAuth (client «Applicazione web»).
+   In «Origini JavaScript autorizzate» aggiungi e salva:
+      https://carlo2424.github.io
+   (serve per usare il calendario anche dal sito pubblico.)
+
+B. ICONA SUL TELEFONO
+   1. Apri Chrome o Safari.
+   2. Vai a: https://carlo2424.github.io/note-summary/
+   3. Impostazioni (ingranaggio) → Collega calendario (se non fatto).
+   4. Aggiungi icona:
+      - Android Chrome: menu ⋮ → Installa app
+      - iPhone Safari: Condividi → Aggiungi a Home
+
+B. IN CASA (senza internet, solo Wi‑Fi PC)
+   http://192.168.1.33:5174
+   (solo con il PC acceso e AVVIO-NOTE-SUMMARY.bat in esecuzione)
+
+I dati restano sul telefono (come app installata) e si aggiornano all’apertura.

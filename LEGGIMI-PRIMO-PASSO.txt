@@ -1,0 +1,43 @@
+NOTE SUMMARY — cosa devi fare tu (una volta sola)
+=================================================
+
+Ho già preparato l'app nella cartella "note summary".
+Note Personali sul Desktop resta com'era prima.
+
+1) GOOGLE (2 minuti)
+   Apri: https://console.cloud.google.com/apis/credentials
+   Clicca il client OAuth "Web" che hai creato.
+   In "Origini JavaScript autorizzate" aggiungi ESATTAMENTE:
+      http://127.0.0.1:5174
+   Salva.
+
+2) AVVIA L'APP
+   Doppio clic su: AVVIO-NOTE-SUMMARY.bat
+   Si apre il browser su Note Summary.
+
+3) CALENDARIO
+   In alto a destra: ingranaggio Impostazioni.
+   Sezione "Calendario Google" -> Collega calendario.
+   Consenti i popup se il browser chiede.
+   Su Google premi CONTINUA (app in test).
+   Account: carlo.licitra@gmail.com
+
+Fatto: in Home la card viola "Calendario" mostra impegni veri + Google.
+
+Anteprima grafica (senza dati veri): Canvas "Note Summary" in Cursor.
+
+SUL CELLULARE (stessa Wi‑Fi di questo PC)
+-----------------------------------
+1. Su questo PC: doppio clic AVVIO-NOTE-SUMMARY.bat (lascia la finestra aperta).
+2. Chiedi a chi ti aiuta l'indirizzo IP del PC (es. 192.168.1.50) oppure
+   in Windows: Impostazioni > Rete > Proprietà Wi‑Fi > IPv4.
+3. Sul telefono, nel browser Chrome o Safari, apri:
+      http://INDIRIZZO-IP:5174
+   Esempio: http://192.168.1.50:5174
+4. In Google Cloud aggiungi anche quell'indirizzo come origine autorizzata
+   (stesso client OAuth), es. http://192.168.1.50:5174
+5. Icona in home:
+   - Android Chrome: menu (tre puntini) > Installa app / Aggiungi a schermata Home
+   - iPhone Safari: Condividi > Aggiungi a Home
+
+NOTA: http://127.0.0.1 sul telefono NON funziona (è solo sul PC).
