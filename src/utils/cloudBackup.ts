@@ -28,7 +28,6 @@ import {
 
 const TOKEN_KEY = SHARED_GITHUB_TOKEN_KEY
 const GIST_ID_KEY = appStorageKey('cloud-gist-id')
-const LEGACY_GIST_ID_KEY = 'pwa-cloud-gist-id'
 const LAST_SYNC_KEY = appStorageKey('cloud-last-sync')
 const OPFS_CREDS_FILE = 'note-summary-cloud-creds.json'
 const OPFS_SYNC_META_FILE = 'note-summary-cloud-sync-meta.json'
@@ -236,10 +235,7 @@ export function getCloudToken(): string | null {
 }
 
 export function getCloudGistId(): string | null {
-  return (
-    localStorage.getItem(GIST_ID_KEY) ??
-    localStorage.getItem(LEGACY_GIST_ID_KEY)
-  )
+  return localStorage.getItem(GIST_ID_KEY)
 }
 
 export function getCloudLastSyncAt(): number | null {
@@ -453,9 +449,35 @@ export async function hydrateCloudCredentials(): Promise<boolean> {
   return ensureCloudCredentials()
 }
 
+async function gistOwnsSummaryBackup(
+  token: string,
+  gistId: string,
+): Promise<boolean> {
+  const res = await githubFetch(`${API_BASE}/gists/${gistId}`, {
+    headers: authHeaders(token),
+  })
+  if (!res.ok) return false
+  const gist = (await res.json()) as GistResponse
+  return (
+    gist.description === GIST_DESCRIPTION ||
+    Boolean(gist.files?.[GIST_FILENAME])
+  )
+}
+
+/**
+ * Un solo gist Note Summary, un solo file `note-summary-backup.json`
+ * (ogni salvataggio lo sovrascrive). Non riusa il gist di Note Personali.
+ */
 async function ensureCloudGistLinked(): Promise<void> {
   const token = getCloudToken()
-  if (!token || getCloudGistId()) return
+  if (!token) return
+
+  const stored = getCloudGistId()
+  if (stored) {
+    if (await gistOwnsSummaryBackup(token, stored)) return
+    localStorage.removeItem(GIST_ID_KEY)
+  }
+
   const gists = await findAllBackupGists(token)
   const id = gists[0]?.id
   if (id) {
