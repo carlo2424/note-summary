@@ -15,7 +15,7 @@ const BUILD_KEY = appStorageKey('app-build')
 const LEGACY_BUILD_KEY = 'pwa-app-build'
 
 /** Incrementa quando cambiano menu/layout shell: forza una pulizia cache PWA. */
-export const APP_SHELL_REVISION = 'nav-summary-v2'
+export const APP_SHELL_REVISION = 'nav-summary-v3'
 const SHELL_REVISION_KEY = appStorageKey('shell-revision')
 
 function appScopePath(): string {

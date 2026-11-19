@@ -38,9 +38,6 @@ import {
   type DataFingerprint,
 } from './utils/dataFingerprint'
 import { ensurePersistentStorage, isStoragePersisted } from './utils/storagePersistence'
-import { NavBadge } from './components/NavBadge'
-import { useNavSectionCounts } from './hooks/useNavSectionCounts'
-import { useOverdueCounts } from './hooks/useOverdueCounts'
 import { useAutomatedEventSync } from './hooks/useAutomatedEventSync'
 import { type Event, type Expense, type Note } from './db'
 import type { NoteKind } from './utils/noteKind'
@@ -134,21 +131,21 @@ function App() {
 
   const current = sections[activeSection]
   const CurrentIcon = current.icon
-  const overdueCounts = useOverdueCounts()
-  const navCounts = useNavSectionCounts()
   useAutomatedEventSync()
 
-  function navBadgeCount(section: Section): number {
-    if (section === 'trading' || section === 'crypto') return 0
-    return navCounts[section as keyof typeof navCounts] ?? 0
-  }
-
-  function navBadgeUrgent(section: Section): boolean {
-    return (
-      overdueCounts.impegni > 0 &&
-      (section === 'home' || section === 'events')
-    )
-  }
+  const menuRows: { key: Section | 'settings'; label: string }[][] = [
+    [
+      { key: 'home', label: 'Home' },
+      { key: 'notes', label: 'Note' },
+      { key: 'events', label: 'Calendario' },
+      { key: 'trading', label: 'Trading' },
+    ],
+    [
+      { key: 'crypto', label: 'Crypto' },
+      { key: 'archive', label: 'Archivio' },
+      { key: 'settings', label: 'Impostazioni' },
+    ],
+  ]
 
   function clearDefaultArea() {
     setDefaultAreaName(undefined)
@@ -502,39 +499,39 @@ function App() {
         )}
 
         <nav
-          className="sticky bottom-0 z-30 border-t border-slate-200/80 bg-white/95 px-0.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-md"
-          aria-label="Menu Note Summary: Home, Note, Calendario, Trading, Crypto, Archivio"
+          className="sticky bottom-0 z-30 bg-[#4b5563] px-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-2"
+          aria-label="Menu Note Summary: testi, senza icone"
         >
-          <ul className="flex items-center justify-between">
-            {ALL_SECTIONS.map((key) => {
-              const section = sections[key]
-              const Icon = section.icon
-              const isActive = activeSection === key
-              const tone = isActive ? 'text-slate-800' : 'text-slate-400'
-
-              return (
-                <li key={key} className="flex-1">
-                  <button
-                    type="button"
-                    onClick={() => navigateSection(key)}
-                    className={`flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[9px] font-medium transition ${tone}`}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    <span className="relative">
-                      <Icon
-                        className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'} ${tone}`}
-                      />
-                      <NavBadge
-                        count={navBadgeCount(key)}
-                        urgent={navBadgeUrgent(key)}
-                      />
-                    </span>
-                    {section.label}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+          <div className="flex flex-col gap-1">
+            {menuRows.map((row) => (
+              <div key={row[0].key} className="flex gap-1">
+                {row.map((item) => {
+                  const isActive =
+                    item.key === 'settings'
+                      ? showSettings
+                      : activeSection === item.key && !showSettings
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => {
+                        if (item.key === 'settings') setShowSettings(true)
+                        else navigateSection(item.key)
+                      }}
+                      className={`min-w-0 flex-1 rounded-md px-0.5 py-1.5 text-center text-xs leading-4 ${
+                        isActive
+                          ? 'bg-[#2563eb] font-semibold text-white'
+                          : 'bg-transparent font-normal text-zinc-100'
+                      }`}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      {item.label}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
         </nav>
       </div>
 
