@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import {
   Archive,
   CalendarDays,
+  CircleDollarSign,
   Home,
   Plus,
   Settings,
   StickyNote,
-  Wallet,
+  TrendingUp,
 } from 'lucide-react'
 import { AddChooser } from './components/AddChooser'
 import { ArchiveList } from './components/ArchiveList'
@@ -15,10 +16,10 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { RecoveryScreen } from './components/RecoveryScreen'
 import { OfflineStatus } from './components/OfflineStatus'
 import { ExpenseForm } from './components/ExpenseForm'
-import { ExpenseList } from './components/ExpenseList'
 import { EventForm } from './components/EventForm'
 import { EventList } from './components/EventList'
 import { DashboardHome } from './components/DashboardHome'
+import { SectionPlaceholder } from './components/SectionPlaceholder'
 import { Modal } from './components/Modal'
 import { NoteForm } from './components/NoteForm'
 import { NoteList } from './components/NoteList'
@@ -45,13 +46,20 @@ import { type Event, type Expense, type Note } from './db'
 import type { NoteKind } from './utils/noteKind'
 import { resolveNoteKind } from './utils/noteKind'
 
-type Section = 'home' | 'notes' | 'events' | 'expenses' | 'archive'
+type Section =
+  | 'home'
+  | 'notes'
+  | 'events'
+  | 'trading'
+  | 'crypto'
+  | 'archive'
 
 const ALL_SECTIONS: Section[] = [
   'home',
   'notes',
   'events',
-  'expenses',
+  'trading',
+  'crypto',
   'archive',
 ]
 
@@ -61,6 +69,7 @@ function isSection(value: string): value is Section {
 
 function readSectionFromHash(): Section {
   const hash = window.location.hash.replace('#', '')
+  if (hash === 'expenses') return 'home'
   return isSection(hash) ? hash : 'home'
 }
 
@@ -81,16 +90,22 @@ const sections: Record<
     description: 'Appunti testuali e liste to-do con spunte.',
   },
   events: {
-    label: 'Impegni',
+    label: 'Calendario',
     icon: CalendarDays,
-    title: 'Impegni e abbonamenti',
-    description: 'Catalogo completo — tutti gli impegni.',
+    title: 'Calendario',
+    description: 'Impegni locali e Google.',
   },
-  expenses: {
-    label: 'Spese',
-    icon: Wallet,
-    title: 'Spese e pagamenti',
-    description: 'Movimenti, carte e totali per metodo.',
+  trading: {
+    label: 'Trading',
+    icon: TrendingUp,
+    title: 'Trading',
+    description: 'Appunti trading (in arrivo).',
+  },
+  crypto: {
+    label: 'Crypto',
+    icon: CircleDollarSign,
+    title: 'Crypto',
+    description: 'Appunti crypto (in arrivo).',
   },
   archive: {
     label: 'Archivio',
@@ -124,7 +139,8 @@ function App() {
   useAutomatedEventSync()
 
   function navBadgeCount(section: Section): number {
-    return navCounts[section]
+    if (section === 'trading' || section === 'crypto') return 0
+    return navCounts[section as keyof typeof navCounts] ?? 0
   }
 
   function navBadgeUrgent(section: Section): boolean {
@@ -222,8 +238,7 @@ function App() {
   }
 
   function handleAddClick() {
-    if (activeSection === 'expenses') openNewExpense()
-    else if (activeSection === 'notes') openNewNote()
+    if (activeSection === 'notes') openNewNote()
     else if (activeSection === 'home') {
       openAddChooser()
     } else {
@@ -461,13 +476,16 @@ function App() {
           {activeSection === 'events' && (
             <EventList onEdit={openEditEvent} onEditNote={openEditNote} />
           )}
-          {activeSection === 'expenses' && (
-            <ExpenseList
-              onEdit={openEditExpense}
-              onOpenEvent={(event) => {
-                navigateSection('events')
-                openEditEvent(event)
-              }}
+          {activeSection === 'trading' && (
+            <SectionPlaceholder
+              title="Trading"
+              hint="Qui raccoglieremo gli appunti trading. Per ora usa Note o la card in Home."
+            />
+          )}
+          {activeSection === 'crypto' && (
+            <SectionPlaceholder
+              title="Crypto"
+              hint="Qui raccoglieremo gli appunti crypto. Per ora usa Note o la card in Home."
             />
           )}
           {activeSection === 'archive' && <ArchiveList />}
@@ -488,7 +506,7 @@ function App() {
           aria-label="Navigazione principale"
         >
           <ul className="flex items-center justify-between">
-            {(Object.keys(sections) as Section[]).map((key) => {
+            {ALL_SECTIONS.map((key) => {
               const section = sections[key]
               const Icon = section.icon
               const isActive = activeSection === key
@@ -527,10 +545,10 @@ function App() {
         >
           <AddChooser
             areaName={defaultAreaName}
+            includeExpenses={false}
             onAddNote={() => addFromChooser('note')}
             onAddChecklist={() => addFromChooser('checklist')}
             onAddEvent={() => addFromChooser('event')}
-            onAddExpense={() => addFromChooser('expense')}
           />
         </Modal>
       )}

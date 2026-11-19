@@ -5,8 +5,10 @@ interface AddChooserProps {
   onAddNote: () => void
   onAddChecklist: () => void
   onAddEvent: () => void
-  onAddExpense: () => void
+  onAddExpense?: () => void
   areaName?: string
+  /** Note Summary: niente spese nel menu + */
+  includeExpenses?: boolean
 }
 
 const options = [
@@ -47,6 +49,7 @@ export function AddChooser({
   onAddEvent,
   onAddExpense,
   areaName,
+  includeExpenses = true,
 }: AddChooserProps) {
   const handlers = {
     note: onAddNote,
@@ -55,6 +58,10 @@ export function AddChooser({
     expense: onAddExpense,
   }
 
+  const visible = includeExpenses
+    ? options
+    : options.filter((opt) => opt.id !== 'expense')
+
   return (
     <div className="space-y-2">
       <p className="mb-3 text-sm text-slate-500">
@@ -62,13 +69,13 @@ export function AddChooser({
           ? `Aggiungi qualcosa in ${areaName}`
           : 'Scegli cosa vuoi aggiungere'}
       </p>
-      {options.map((opt) => {
+      {visible.map((opt) => {
         const Icon = opt.icon
         return (
           <button
             key={opt.id}
             type="button"
-            onClick={handlers[opt.id]}
+            onClick={() => handlers[opt.id]?.()}
             className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50/40 active:scale-[.99]"
           >
             <div
