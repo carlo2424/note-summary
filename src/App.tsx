@@ -19,7 +19,8 @@ import { ExpenseForm } from './components/ExpenseForm'
 import { EventForm } from './components/EventForm'
 import { EventList } from './components/EventList'
 import { DashboardHome } from './components/DashboardHome'
-import { SectionPlaceholder } from './components/SectionPlaceholder'
+import type { SummaryAddCategory } from './components/AddChooser'
+import type { SummaryBucket } from './utils/summaryCategory'
 import { Modal } from './components/Modal'
 import { NoteForm } from './components/NoteForm'
 import { NoteList } from './components/NoteList'
@@ -127,6 +128,7 @@ function App() {
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>()
   const [editingNote, setEditingNote] = useState<Note | undefined>()
   const [newNoteKind, setNewNoteKind] = useState<NoteKind>('text')
+  const [noteBucket, setNoteBucket] = useState<SummaryBucket>('note')
   const [defaultAreaName, setDefaultAreaName] = useState<string | undefined>()
 
   const current = sections[activeSection]
@@ -161,11 +163,6 @@ function App() {
     setShowEventForm(true)
   }
 
-  function openNewExpense() {
-    setEditingExpense(undefined)
-    setShowExpenseForm(true)
-  }
-
   function openEditExpense(expense: Expense) {
     setEditingExpense(expense)
     setShowExpenseForm(true)
@@ -194,14 +191,18 @@ function App() {
     }
   }
 
-  function addFromChooser(
-    kind: 'note' | 'checklist' | 'event' | 'expense',
-  ) {
+  function addFromChooser(category: SummaryAddCategory) {
     setShowAddChooser(false)
-    if (kind === 'note') openNewNote('text')
-    else if (kind === 'checklist') openNewNote('checklist')
-    else if (kind === 'event') openNewEvent()
-    else openNewExpense()
+    if (category === 'calendario') {
+      navigateSection('events')
+      openNewEvent()
+      return
+    }
+    const bucket: SummaryBucket =
+      category === 'trading' || category === 'crypto' ? category : 'note'
+    setNoteBucket(bucket)
+    navigateSection(bucket === 'note' ? 'notes' : bucket)
+    openNewNote('text')
   }
 
   function closeNoteForm() {
@@ -235,12 +236,7 @@ function App() {
   }
 
   function handleAddClick() {
-    if (activeSection === 'notes') openNewNote()
-    else if (activeSection === 'home') {
-      openAddChooser()
-    } else {
-      openNewEvent()
-    }
+    openAddChooser()
   }
 
   const showAddButton = activeSection !== 'archive'
@@ -464,26 +460,22 @@ function App() {
               onEditNote={openEditNote}
               onGoToEvents={() => navigateSection('events')}
               onGoToNotes={() => navigateSection('notes')}
+              onGoToTrading={() => navigateSection('trading')}
+              onGoToCrypto={() => navigateSection('crypto')}
               onOpenSettings={() => setShowSettings(true)}
             />
           )}
           {activeSection === 'notes' && (
-            <NoteList onEdit={openEditNote} />
+            <NoteList bucket="note" onEdit={openEditNote} />
           )}
           {activeSection === 'events' && (
             <EventList onEdit={openEditEvent} onEditNote={openEditNote} />
           )}
           {activeSection === 'trading' && (
-            <SectionPlaceholder
-              title="Trading"
-              hint="Qui raccoglieremo gli appunti trading. Per ora usa Note o la card in Home."
-            />
+            <NoteList bucket="trading" onEdit={openEditNote} />
           )}
           {activeSection === 'crypto' && (
-            <SectionPlaceholder
-              title="Crypto"
-              hint="Qui raccoglieremo gli appunti crypto. Per ora usa Note o la card in Home."
-            />
+            <NoteList bucket="crypto" onEdit={openEditNote} />
           )}
           {activeSection === 'archive' && <ArchiveList />}
         </main>
@@ -537,22 +529,16 @@ function App() {
 
       {showAddChooser && (
         <Modal
-          title={defaultAreaName ? `Aggiungi in ${defaultAreaName}` : 'Aggiungi'}
+          title="Nuova voce"
           onClose={closeAddChooser}
         >
-          <AddChooser
-            areaName={defaultAreaName}
-            includeExpenses={false}
-            onAddNote={() => addFromChooser('note')}
-            onAddChecklist={() => addFromChooser('checklist')}
-            onAddEvent={() => addFromChooser('event')}
-          />
+          <AddChooser onChoose={addFromChooser} />
         </Modal>
       )}
 
       {showEventForm && (
         <Modal
-          title={editingEvent ? 'Modifica impegno' : 'Nuovo impegno'}
+          title={editingEvent ? 'Modifica calendario' : 'Nuova voce Calendario'}
           onClose={closeEventForm}
         >
           <EventForm
@@ -577,9 +563,11 @@ function App() {
               ? resolveNoteKind(editingNote) === 'checklist'
                 ? 'Modifica lista'
                 : 'Modifica nota'
-              : newNoteKind === 'checklist'
-                ? 'Nuova lista'
-                : 'Nuova nota'
+              : noteBucket === 'trading'
+                ? 'Nuova voce Trading'
+                : noteBucket === 'crypto'
+                  ? 'Nuova voce Crypto'
+                  : 'Nuova voce Note'
           }
           onClose={closeNoteForm}
         >
@@ -587,6 +575,7 @@ function App() {
             note={editingNote}
             defaultKind={newNoteKind}
             defaultAreaName={editingNote ? undefined : defaultAreaName}
+            summaryCategory={editingNote ? undefined : noteBucket}
             onSave={handleNoteSaved}
             onClose={closeNoteForm}
           />

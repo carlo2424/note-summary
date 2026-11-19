@@ -1,95 +1,33 @@
-import { CalendarDays, ListChecks, StickyNote, Wallet } from 'lucide-react'
-import { ITEM_TYPE_STYLE } from '../constants/itemColors'
-
-interface AddChooserProps {
-  onAddNote: () => void
-  onAddChecklist: () => void
-  onAddEvent: () => void
-  onAddExpense?: () => void
-  areaName?: string
-  /** Note Summary: niente spese nel menu + */
-  includeExpenses?: boolean
-}
-
-const options = [
-  {
-    id: 'note',
-    label: 'Nota',
-    description: 'Appunto testuale libero',
-    icon: StickyNote,
-    iconClass: ITEM_TYPE_STYLE.note.navIconBg,
-  },
-  {
-    id: 'checklist',
-    label: 'Lista',
-    description: 'To-do con voci da spuntare',
-    icon: ListChecks,
-    iconClass: ITEM_TYPE_STYLE.checklist.navIconBg,
-  },
-  {
-    id: 'event',
-    label: 'Impegno',
-    description: 'Con data inizio e data fine',
-    icon: CalendarDays,
-    iconClass: ITEM_TYPE_STYLE.event.navIconBg,
-  },
-  {
-    id: 'expense',
-    label: 'Spesa',
-    description: 'Pagamento una tantum',
-    icon: Wallet,
-    iconClass: ITEM_TYPE_STYLE.expense.navIconBg,
-  },
+const categories = [
+  { id: 'note', label: 'Note' },
+  { id: 'calendario', label: 'Calendario' },
+  { id: 'trading', label: 'Trading' },
+  { id: 'crypto', label: 'Crypto' },
 ] as const
 
-/** Scelta del tipo di elemento da creare (un solo tap) */
-export function AddChooser({
-  onAddNote,
-  onAddChecklist,
-  onAddEvent,
-  onAddExpense,
-  areaName,
-  includeExpenses = true,
-}: AddChooserProps) {
-  const handlers = {
-    note: onAddNote,
-    checklist: onAddChecklist,
-    event: onAddEvent,
-    expense: onAddExpense,
-  }
+export type SummaryAddCategory = (typeof categories)[number]['id']
 
-  const visible = includeExpenses
-    ? options
-    : options.filter((opt) => opt.id !== 'expense')
+interface AddChooserProps {
+  onChoose: (category: SummaryAddCategory) => void
+}
 
+/** Menu + di Note Summary: stesse categorie del menu in basso, solo testo. */
+export function AddChooser({ onChoose }: AddChooserProps) {
   return (
-    <div className="space-y-2">
-      <p className="mb-3 text-sm text-slate-500">
-        {areaName
-          ? `Aggiungi qualcosa in ${areaName}`
-          : 'Scegli cosa vuoi aggiungere'}
-      </p>
-      {visible.map((opt) => {
-        const Icon = opt.icon
-        return (
+    <div className="rounded-xl bg-[#4b5563] p-2">
+      <p className="mb-2 px-1 text-xs text-zinc-100">Scegli la categoria</p>
+      <div className="flex flex-col gap-1">
+        {categories.map((item) => (
           <button
-            key={opt.id}
+            key={item.id}
             type="button"
-            onClick={() => handlers[opt.id]?.()}
-            className="flex w-full items-center gap-3 rounded-xl border border-slate-100 bg-white p-3 text-left shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50/40 active:scale-[.99]"
+            onClick={() => onChoose(item.id)}
+            className="w-full rounded-md bg-[#2563eb] px-3 py-2 text-center text-sm font-semibold text-white"
           >
-            <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${opt.iconClass}`}
-            >
-              <Icon className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900">{opt.label}</p>
-              <p className="text-xs text-slate-500">{opt.description}</p>
-            </div>
+            {item.label}
           </button>
-        )
-      })}
+        ))}
+      </div>
     </div>
   )
 }

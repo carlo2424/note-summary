@@ -10,6 +10,8 @@ export interface Note {
   content: string
   /** Nota testuale o lista to-do con spunte */
   kind?: 'text' | 'checklist'
+  /** Categoria Note Summary. Assente = Note. */
+  summaryCategory?: 'note' | 'trading' | 'crypto'
   color?: string
   icon?: string
   photoBlob?: Blob

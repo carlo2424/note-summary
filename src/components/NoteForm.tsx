@@ -24,6 +24,8 @@ interface NoteFormProps {
   note?: Note
   defaultKind?: NoteKind
   defaultAreaName?: string
+  /** Solo per una voce nuova: Note, Trading o Crypto. */
+  summaryCategory?: 'note' | 'trading' | 'crypto'
   onSave: () => void
   onClose: () => void
 }
@@ -72,6 +74,7 @@ export function NoteForm({
   note,
   defaultKind = 'text',
   defaultAreaName,
+  summaryCategory,
   onSave,
   onClose,
 }: NoteFormProps) {
@@ -157,6 +160,7 @@ export function NoteForm({
         startDate: startDate || undefined,
         endDate: undefined,
         areaId,
+        summaryCategory: note?.summaryCategory ?? summaryCategory ?? 'note',
         updatedAt: now,
       }
 

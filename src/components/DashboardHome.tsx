@@ -4,6 +4,7 @@ import { useDexieLiveQuery } from '../hooks/useDexieLiveQuery'
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar'
 import { sentenceCase } from '../utils/format'
 import { formatHomeDeadlineDate, homeDeadlineWhenWord } from '../utils/homeSpotlight'
+import { noteSummaryBucket } from '../utils/summaryCategory'
 import {
   buildCalendarioRows,
   readCalendarioVisibleIds,
@@ -30,16 +31,22 @@ interface DashboardHomeProps {
   onEditNote: (note: Note) => void
   onGoToEvents: () => void
   onGoToNotes: () => void
+  onGoToTrading: () => void
+  onGoToCrypto: () => void
   onOpenSettings: () => void
 }
 
-function PlaceholderCard({
+function CategoryCard({
   title,
   className,
+  lines,
+  empty,
   onClick,
 }: {
   title: string
   className: string
+  lines: string[]
+  empty: string
   onClick?: () => void
 }) {
   return (
@@ -51,7 +58,18 @@ function PlaceholderCard({
       <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">
         {title}
       </span>
-      <span className="text-xs text-slate-500">Prossimamente in dashboard</span>
+      {lines.length === 0 ? (
+        <span className="text-xs text-slate-600">{empty}</span>
+      ) : (
+        lines.map((line, index) => (
+          <span
+            key={`${line}-${index}`}
+            className="line-clamp-2 break-words text-xs text-slate-800"
+          >
+            {line}
+          </span>
+        ))
+      )}
     </button>
   )
 }
@@ -61,6 +79,8 @@ export function DashboardHome({
   onEditNote,
   onGoToEvents,
   onGoToNotes,
+  onGoToTrading,
+  onGoToCrypto,
   onOpenSettings,
 }: DashboardHomeProps) {
   const events = useDexieLiveQuery(() => db.events.toArray())
@@ -205,13 +225,36 @@ export function DashboardHome({
           )}
         </button>
 
-        <PlaceholderCard
+        <CategoryCard
           title="Note"
           className={PASTEL.note}
           onClick={onGoToNotes}
+          empty="Nessuna nota"
+          lines={(notes ?? [])
+            .filter((note) => noteSummaryBucket(note) === 'note')
+            .slice(0, 4)
+            .map((note) => sentenceCase(note.title))}
         />
-        <PlaceholderCard title="Trading" className={PASTEL.trading} />
-        <PlaceholderCard title="Crypto" className={PASTEL.crypto} />
+        <CategoryCard
+          title="Trading"
+          className={PASTEL.trading}
+          onClick={onGoToTrading}
+          empty="Nessuna voce"
+          lines={(notes ?? [])
+            .filter((note) => noteSummaryBucket(note) === 'trading')
+            .slice(0, 4)
+            .map((note) => sentenceCase(note.title))}
+        />
+        <CategoryCard
+          title="Crypto"
+          className={PASTEL.crypto}
+          onClick={onGoToCrypto}
+          empty="Nessuna voce"
+          lines={(notes ?? [])
+            .filter((note) => noteSummaryBucket(note) === 'crypto')
+            .slice(0, 4)
+            .map((note) => sentenceCase(note.title))}
+        />
       </div>
     </div>
   )

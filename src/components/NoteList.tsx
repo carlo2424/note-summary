@@ -4,22 +4,29 @@ import { useDexieLiveQuery } from '../hooks/useDexieLiveQuery'
 import { areaNameById } from '../utils/areas'
 import { filterPlainNotes } from '../utils/impegno'
 import { isNoteChecklist, isPlainTextNote } from '../utils/noteKind'
+import {
+  noteSummaryBucket,
+  type SummaryBucket,
+} from '../utils/summaryCategory'
 import { NoteExpandableRow } from './NoteExpandableRow'
 
 type NoteFilter = 'all' | 'text' | 'checklist'
 
 interface NoteListProps {
   onEdit: (note: Note) => void
+  bucket?: SummaryBucket
 }
 
-export function NoteList({ onEdit }: NoteListProps) {
+export function NoteList({ onEdit, bucket = 'note' }: NoteListProps) {
   const [filter, setFilter] = useState<NoteFilter>('all')
   const notes = useDexieLiveQuery(
     () => db.notes.orderBy('updatedAt').reverse().toArray(),
   )
   const areas = useDexieLiveQuery(() => db.areas.toArray())
 
-  const plainNotes = filterPlainNotes(notes ?? [])
+  const plainNotes = filterPlainNotes(notes ?? []).filter(
+    (note) => noteSummaryBucket(note) === bucket,
+  )
   const filtered = plainNotes.filter((note) => {
     if (filter === 'text') return isPlainTextNote(note)
     if (filter === 'checklist') return isNoteChecklist(note)
@@ -41,11 +48,15 @@ export function NoteList({ onEdit }: NoteListProps) {
   if (plainNotes.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center">
-        <p className="text-sm font-medium text-slate-600">Nessuna nota o lista</p>
+        <p className="text-sm font-medium text-slate-600">
+          {bucket === 'note' ? 'Nessuna nota' : `Nessuna voce in ${bucket === 'trading' ? 'Trading' : 'Crypto'}`}
+        </p>
         <p className="mt-1 text-xs text-slate-400">
-          Tocca <span className="font-medium">+</span> per una nota testuale o una
-          lista to-do. Con date inizio e fine compaiono anche in{' '}
-          <span className="font-medium">Impegni</span>.
+          Tocca <span className="font-medium">+</span> e scegli{' '}
+          <span className="font-medium">
+            {bucket === 'note' ? 'Note' : bucket === 'trading' ? 'Trading' : 'Crypto'}
+          </span>
+          .
         </p>
       </div>
     )
