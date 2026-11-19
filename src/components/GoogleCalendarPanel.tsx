@@ -80,9 +80,18 @@ export function GoogleCalendarPanel() {
           , apri il client OAuth «Applicazione web».
         </li>
         <li>
-          Aggiungi{' '}
-          <span className="font-mono text-slate-800">{origin}</span> tra le
-          origini JavaScript autorizzate e salva.
+          Aggiungi tra le origini JavaScript autorizzate e salva:{' '}
+          <span className="font-mono text-slate-800">{origin}</span>
+          {origin !== 'https://carlo2424.github.io' && (
+            <>
+              {' '}
+              e, per il telefono fuori casa,{' '}
+              <span className="font-mono text-slate-800">
+                https://carlo2424.github.io
+              </span>
+            </>
+          )}
+          .
         </li>
         <li>
           Qui sotto il Client ID è già compilato. Premi «Collega calendario»,

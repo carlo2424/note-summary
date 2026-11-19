@@ -4,6 +4,12 @@ NOTE SUMMARY — sul telefono (anche fuori casa)
 Indirizzo dell’app online (dopo il caricamento su GitHub):
    https://carlo2424.github.io/note-summary/
 
+COME CARICARE SU GITHUB (una volta)
+   1) https://github.com/new → nome: note-summary → Public → Crea
+   2) Doppio clic su: PUBBLICA-SU-INTERNET.bat
+      (ti chiede login GitHub se serve)
+   3) Aspetta 2–3 minuti, poi apri il link sopra sul telefono.
+
 A. PRIMA VOLTA SU GOOGLE (2 minuti)
    Apri le credenziali OAuth (client «Applicazione web»).
    In «Origini JavaScript autorizzate» aggiungi e salva:
