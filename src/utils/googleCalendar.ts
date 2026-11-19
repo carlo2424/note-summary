@@ -82,6 +82,229 @@ function lsRemove(key: string) {
   }
 }
 
+const OPFS_CREDS_FILE = 'note-summary-google-calendar-creds.json'
+const GCAL_IDB_NAME = 'note-summary-google-calendar-auth'
+const GCAL_IDB_VERSION = 1
+const GCAL_IDB_KEY = 'calendar'
+
+type StoredGoogleCreds = {
+  clientId: string
+  token: StoredToken | null
+  connected: boolean
+}
+
+function supportsOpfs(): boolean {
+  return typeof navigator.storage?.getDirectory === 'function'
+}
+
+async function writeOpfsText(fileName: string, content: string): Promise<void> {
+  if (!supportsOpfs()) return
+  const root = await navigator.storage.getDirectory()
+  const fileHandle = await root.getFileHandle(fileName, { create: true })
+  const writable = await fileHandle.createWritable()
+  await writable.write(content)
+  await writable.close()
+}
+
+async function readOpfsText(fileName: string): Promise<string | null> {
+  if (!supportsOpfs()) return null
+  try {
+    const root = await navigator.storage.getDirectory()
+    const fileHandle = await root.getFileHandle(fileName)
+    const file = await fileHandle.getFile()
+    return await file.text()
+  } catch {
+    return null
+  }
+}
+
+async function removeOpfsFile(fileName: string): Promise<void> {
+  if (!supportsOpfs()) return
+  try {
+    const root = await navigator.storage.getDirectory()
+    await root.removeEntry(fileName)
+  } catch {
+    // ignora
+  }
+}
+
+function openGoogleCredsIdb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(GCAL_IDB_NAME, GCAL_IDB_VERSION)
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore('creds')
+    }
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function idbPutGoogleCreds(creds: StoredGoogleCreds): Promise<void> {
+  const db = await openGoogleCredsIdb()
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction('creds', 'readwrite')
+    tx.objectStore('creds').put(creds, GCAL_IDB_KEY)
+    tx.oncomplete = () => resolve()
+    tx.onerror = () => reject(tx.error)
+  })
+  db.close()
+}
+
+async function idbGetGoogleCreds(): Promise<StoredGoogleCreds | null> {
+  const db = await openGoogleCredsIdb()
+  const value = await new Promise<StoredGoogleCreds | null>((resolve, reject) => {
+    const tx = db.transaction('creds', 'readonly')
+    const req = tx.objectStore('creds').get(GCAL_IDB_KEY)
+    req.onsuccess = () =>
+      resolve((req.result as StoredGoogleCreds | undefined) ?? null)
+    req.onerror = () => reject(req.error)
+  })
+  db.close()
+  return value
+}
+
+async function idbClearGoogleCreds(): Promise<void> {
+  try {
+    const db = await openGoogleCredsIdb()
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction('creds', 'readwrite')
+      tx.objectStore('creds').delete(GCAL_IDB_KEY)
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+    db.close()
+  } catch {
+    // ignora
+  }
+}
+
+function readCredsFromLocalStorage(): StoredGoogleCreds {
+  const clientId = readStoredClientId()
+  const token = readStoredToken()
+  return {
+    clientId,
+    token: token ? { ...token } : null,
+    connected: isConnectedFlag(),
+  }
+}
+
+function applyGoogleCredsToLocalStorage(creds: StoredGoogleCreds): boolean {
+  const clientId = creds.clientId?.trim() ?? ''
+  if (clientId) lsSet(CLIENT_ID_KEY, clientId)
+  else lsRemove(CLIENT_ID_KEY)
+
+  if (creds.connected) lsSet(CONNECTED_KEY, '1')
+  else lsRemove(CONNECTED_KEY)
+
+  if (
+    creds.token &&
+    typeof creds.token.accessToken === 'string' &&
+    typeof creds.token.expiresAt === 'number'
+  ) {
+    memoryToken = {
+      accessToken: creds.token.accessToken,
+      expiresAt: creds.token.expiresAt,
+    }
+    lsSet(TOKEN_KEY, JSON.stringify(memoryToken))
+    return true
+  }
+
+  memoryToken = null
+  lsRemove(TOKEN_KEY)
+  return creds.connected || !!clientId
+}
+
+function reloadSnapshotFromStorage() {
+  snapshot = loadInitialSnapshot()
+  emit()
+}
+
+/** Salva client ID, token e flag collegato in OPFS + IndexedDB (oltre a localStorage). */
+export async function persistGoogleCalendarCredentials(): Promise<void> {
+  const creds = readCredsFromLocalStorage()
+  const payload = JSON.stringify(creds)
+  try {
+    await writeOpfsText(OPFS_CREDS_FILE, payload)
+  } catch {
+    // best-effort
+  }
+  try {
+    await idbPutGoogleCreds(creds)
+  } catch {
+    // best-effort
+  }
+}
+
+async function repairRedundantGoogleCalendarCopies(): Promise<void> {
+  if (!isConnectedFlag() && !readStoredClientId() && !readStoredToken()) return
+  const opfsRaw = await readOpfsText(OPFS_CREDS_FILE)
+  const idbRaw = await idbGetGoogleCreds().catch(() => null)
+  if (!opfsRaw) {
+    try {
+      await persistGoogleCalendarCredentials()
+    } catch {
+      // best-effort
+    }
+  } else if (!idbRaw) {
+    try {
+      await persistGoogleCalendarCredentials()
+    } catch {
+      // best-effort
+    }
+  }
+}
+
+async function applyGoogleCreds(creds: StoredGoogleCreds): Promise<boolean> {
+  if (!applyGoogleCredsToLocalStorage(creds)) return false
+  reloadSnapshotFromStorage()
+  await repairRedundantGoogleCalendarCopies()
+  return true
+}
+
+/**
+ * Se localStorage è vuoto (tab chiusa su mobile, pulizia parziale), ripristina
+ * da OPFS o IndexedDB.
+ */
+export async function hydrateGoogleCalendarCredentials(): Promise<boolean> {
+  const hasLocal =
+    !!readStoredClientId() || !!readStoredToken() || isConnectedFlag()
+  if (hasLocal) {
+    await repairRedundantGoogleCalendarCopies()
+    reloadSnapshotFromStorage()
+    return true
+  }
+
+  try {
+    const raw = await readOpfsText(OPFS_CREDS_FILE)
+    if (raw) {
+      const parsed = JSON.parse(raw) as StoredGoogleCreds
+      if (await applyGoogleCreds(parsed)) {
+        await persistGoogleCalendarCredentials()
+        return true
+      }
+    }
+  } catch {
+    // prova IDB
+  }
+
+  try {
+    const stored = await idbGetGoogleCreds()
+    if (stored && (await applyGoogleCreds(stored))) {
+      await persistGoogleCalendarCredentials()
+      return true
+    }
+  } catch {
+    // nessuna copia
+  }
+
+  return false
+}
+
+async function clearRedundantGoogleCalendarCopies(): Promise<void> {
+  await removeOpfsFile(OPFS_CREDS_FILE)
+  await idbClearGoogleCreds()
+}
+
 export function readStoredClientId(): string {
   return lsGet(CLIENT_ID_KEY)?.trim() ?? ''
 }
@@ -205,6 +428,7 @@ export function setStoredClientId(value: string) {
     tokenClientId = ''
   }
   update({ clientId: getGoogleClientId() })
+  void persistGoogleCalendarCredentials()
 }
 
 function persistError(message: string | null) {
@@ -223,11 +447,13 @@ function saveToken(accessToken: string, expiresInSec: number) {
   memoryToken = { accessToken, expiresAt }
   lsSet(TOKEN_KEY, JSON.stringify(memoryToken))
   lsSet(CONNECTED_KEY, '1')
+  void persistGoogleCalendarCredentials()
 }
 
 function clearToken() {
   memoryToken = null
   lsRemove(TOKEN_KEY)
+  void persistGoogleCalendarCredentials()
 }
 
 function isValidClientId(id: string): boolean {
@@ -698,6 +924,7 @@ export function disconnectGoogleCalendar() {
   lsRemove(CONNECTED_KEY)
   lsRemove(CACHE_KEY)
   lsRemove(ERROR_KEY)
+  void clearRedundantGoogleCalendarCopies()
   tokenClient = null
   tokenClientId = ''
   update({

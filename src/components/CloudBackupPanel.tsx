@@ -40,7 +40,7 @@ function formatSync(at: number | null): string {
 
 export function CloudBackupPanel() {
   const [status, setStatus] = useState(getCloudStatus())
-  const [token, setToken] = useState('')
+  const [token, setToken] = useState(() => getCloudToken() ?? '')
   const [busy, setBusy] = useState<
     'connect' | 'push' | 'restore' | 'history' | null
   >(null)

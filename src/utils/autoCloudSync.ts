@@ -7,6 +7,8 @@ import {
   reconcileCloudSync,
 } from './cloudBackup'
 import { isCloudSyncPaused } from './cloudSyncPause'
+import { persistGoogleCalendarCredentials } from './googleCalendar'
+import { restorePersistedConnections } from './connectionBootstrap'
 
 let cloudPushTimer: ReturnType<typeof setTimeout> | undefined
 let hooksInstalled = false
@@ -112,6 +114,7 @@ export function installReloadPersistenceGuards(): void {
   reloadGuardsInstalled = true
 
   const flush = () => {
+    void persistGoogleCalendarCredentials()
     flushBeforePageLeave()
   }
 
@@ -127,7 +130,7 @@ export function installReloadPersistenceGuards(): void {
       flush()
       return
     }
-    void ensureCloudCredentials()
+    void restorePersistedConnections()
   })
 
   let touchStartY = 0
