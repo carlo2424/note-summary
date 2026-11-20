@@ -2,7 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { installReloadPersistenceGuards } from './utils/autoCloudSync'
-import { restorePersistedConnections } from './utils/connectionBootstrap'
+import {
+  ensureAuthBootstrapped,
+  scheduleAuthKeepalive,
+} from './utils/connectionBootstrap'
 import { Bootstrap } from './components/Bootstrap.tsx'
 import {
   applyAppUpdateReload,
@@ -36,7 +39,6 @@ async function clearPwaCacheInDev(): Promise<void> {
 void clearPwaCacheInDev()
 
 installReloadPersistenceGuards()
-void restorePersistedConnections()
 
 async function startApp(): Promise<void> {
   let action = await ensureAppShellRevision()
@@ -53,6 +55,8 @@ async function startApp(): Promise<void> {
 
   registerProductionServiceWorker()
   scheduleRemoteBuildChecks()
+  scheduleAuthKeepalive()
+  await ensureAuthBootstrapped()
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>

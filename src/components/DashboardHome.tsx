@@ -2,11 +2,13 @@ import { useMemo, useState } from 'react'
 import { db, type Event, type Note } from '../db'
 import { useDexieLiveQuery } from '../hooks/useDexieLiveQuery'
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar'
-import { sentenceCase } from '../utils/format'
-import { formatHomeDeadlineDate, homeDeadlineWhenWord } from '../utils/homeSpotlight'
 import { noteSummaryBucket } from '../utils/summaryCategory'
+import { hasPersistedGoogleCalendarLink } from '../utils/googleCalendar'
+import { sentenceCase } from '../utils/format'
 import {
   buildCalendarioRows,
+  formatCalendarioExpandedMeta,
+  formatCalendarioHomeLine,
   readCalendarioVisibleIds,
   writeCalendarioVisibleIds,
   type CalendarioRow,
@@ -18,13 +20,6 @@ const PASTEL = {
   trading: 'border-sky-200 bg-[#D4E6F8]',
   crypto: 'border-emerald-200 bg-[#D5F0E2]',
 } as const
-
-function calendarioLineLabel(row: CalendarioRow): string {
-  const when = homeDeadlineWhenWord(row.sortIso)
-  const date = formatHomeDeadlineDate(row.sortIso)
-  const whenWord = when ? `${when} ` : ''
-  return `${sentenceCase(row.title)} - ${whenWord}${date}`
-}
 
 interface DashboardHomeProps {
   onEditEvent: (event: Event) => void
@@ -159,14 +154,11 @@ export function DashboardHome({
                   onClick={() => openRow(row)}
                   className="min-w-0 flex-1 text-left"
                 >
+                  <p className="break-words text-sm font-semibold text-violet-900">
+                    {formatCalendarioExpandedMeta(row)}
+                  </p>
                   <p className="break-words text-sm font-medium text-slate-800">
                     {sentenceCase(row.title)}
-                  </p>
-                  <p className="break-words text-[11px] text-slate-500">
-                    {row.kind === 'google'
-                      ? row.subtitle
-                      : calendarioLineLabel(row)}
-                    {row.kind === 'google' ? '' : ''}
                   </p>
                 </button>
               </li>
@@ -186,7 +178,9 @@ export function DashboardHome({
 
   return (
     <div className="space-y-2 rounded-2xl bg-white p-3">
-      {!google.connected && (
+      {!google.connected &&
+        !hasPersistedGoogleCalendarLink() &&
+        google.events.length === 0 && (
         <button
           type="button"
           onClick={onOpenSettings}
@@ -195,6 +189,12 @@ export function DashboardHome({
           Collega il calendario Google in Impostazioni per vedere gli eventi
           veri nella card Calendario.
         </button>
+      )}
+      {hasPersistedGoogleCalendarLink() && !google.connected && google.error && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Calendario Google collegato in memoria: aggiornamento in corso. Se
+          serve, riapri Impostazioni e tocca «Collega calendario».
+        </p>
       )}
       <div className="grid grid-cols-2 gap-2">
         <button
@@ -217,9 +217,7 @@ export function DashboardHome({
                 key={row.id}
                 className="line-clamp-2 break-words text-xs text-slate-800"
               >
-                {row.kind === 'google'
-                  ? `${sentenceCase(row.title)} · ${row.subtitle}`
-                  : calendarioLineLabel(row)}
+                {formatCalendarioHomeLine(row)}
               </span>
             ))
           )}

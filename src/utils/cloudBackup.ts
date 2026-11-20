@@ -13,6 +13,7 @@ import {
   SHARED_GITHUB_TOKEN_KEY,
   appStorageKey,
 } from '../constants/storageScope'
+import { snapshotLocalAuthToVault } from './authVault'
 
 /**
  * Backup cloud gratuito su GitHub Gist (privato).
@@ -398,6 +399,7 @@ export async function persistCloudCredentials(
   } catch {
     // best-effort
   }
+  void snapshotLocalAuthToVault()
 }
 
 /**

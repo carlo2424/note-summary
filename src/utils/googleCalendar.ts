@@ -1,4 +1,5 @@
 import { appStorageKey } from '../constants/storageScope'
+import { snapshotLocalAuthToVault } from './authVault'
 import { localIsoFromDate } from './calendarMarkers'
 
 /**
@@ -219,6 +220,19 @@ function reloadSnapshotFromStorage() {
   emit()
 }
 
+export function reloadGoogleCalendarSnapshotFromStorage(): void {
+  reloadSnapshotFromStorage()
+}
+
+/** Collegamento salvato (anche se il token va rinnovato in silenzio). */
+export function hasPersistedGoogleCalendarLink(): boolean {
+  return (
+    isConnectedFlag() ||
+    !!readStoredToken() ||
+    (readCache()?.events.length ?? 0) > 0
+  )
+}
+
 /** Salva client ID, token e flag collegato in OPFS + IndexedDB (oltre a localStorage). */
 export async function persistGoogleCalendarCredentials(): Promise<void> {
   const creds = readCredsFromLocalStorage()
@@ -233,6 +247,7 @@ export async function persistGoogleCalendarCredentials(): Promise<void> {
   } catch {
     // best-effort
   }
+  void snapshotLocalAuthToVault()
 }
 
 async function repairRedundantGoogleCalendarCopies(): Promise<void> {
@@ -382,7 +397,7 @@ function loadInitialSnapshot(): GoogleCalendarSnapshot {
   const error = lsGet(ERROR_KEY)?.trim() || null
   return {
     clientId: getGoogleClientId(),
-    connected: isConnectedFlag(),
+    connected: hasPersistedGoogleCalendarLink(),
     events: cache?.events ?? [],
     error,
     fetchedAt: cache?.fetchedAt || null,
@@ -872,7 +887,10 @@ export function refreshGoogleCalendar(): Promise<void> {
     } catch (err) {
       const message = messageFrom(err)
       persistError(message)
-      update({ error: message, connected: isConnectedFlag() })
+      update({
+        error: message,
+        connected: hasPersistedGoogleCalendarLink(),
+      })
     }
   })
 }

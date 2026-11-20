@@ -8,7 +8,8 @@ import {
 } from './cloudBackup'
 import { isCloudSyncPaused } from './cloudSyncPause'
 import { persistGoogleCalendarCredentials } from './googleCalendar'
-import { restorePersistedConnections } from './connectionBootstrap'
+import { snapshotLocalAuthToVault } from './authVault'
+import { ensureAuthBootstrapped } from './connectionBootstrap'
 
 let cloudPushTimer: ReturnType<typeof setTimeout> | undefined
 let hooksInstalled = false
@@ -115,6 +116,7 @@ export function installReloadPersistenceGuards(): void {
 
   const flush = () => {
     void persistGoogleCalendarCredentials()
+    void snapshotLocalAuthToVault()
     flushBeforePageLeave()
   }
 
@@ -130,7 +132,7 @@ export function installReloadPersistenceGuards(): void {
       flush()
       return
     }
-    void restorePersistedConnections()
+    void ensureAuthBootstrapped()
   })
 
   let touchStartY = 0

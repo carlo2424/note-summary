@@ -7,6 +7,7 @@ import {
   noteKeyDate,
 } from './homeSpotlight'
 import type { GoogleCalendarEvent } from './googleCalendar'
+import { homeDeadlineWhenWord } from './homeSpotlight'
 
 export type CalendarioRowKind = 'event' | 'note' | 'google'
 
@@ -101,6 +102,46 @@ export function readCalendarioVisibleIds(allIds: string[]): Set<string> {
     if (set.size > 0) return set
   }
   return new Set(allIds.slice(0, 3))
+}
+
+/** Data sempre visibile in card Home: giorno + mese; anno se diverso da quello corrente. */
+export function formatCalendarioCardDate(iso: string): string {
+  const nowY = new Date().getFullYear()
+  const d = new Date(`${iso}T12:00:00`)
+  const opts: Intl.DateTimeFormatOptions = {
+    day: 'numeric',
+    month: 'long',
+  }
+  if (d.getFullYear() !== nowY) opts.year = 'numeric'
+  return d.toLocaleDateString('it-IT', opts)
+}
+
+/** Riga compatta Home: data in evidenza, poi titolo (e ora Google se c’è). */
+export function formatCalendarioHomeLine(row: CalendarioRow): string {
+  const date = formatCalendarioCardDate(row.sortIso)
+  const title = row.title.trim()
+  if (row.kind === 'google') {
+    const time = row.google?.whenLabel?.trim()
+    const timePart = time && time !== 'tutto il giorno' ? ` · ${time}` : ''
+    return `${date}${timePart} · ${title}`
+  }
+  const when = homeDeadlineWhenWord(row.sortIso)
+  const whenPart = when ? `${when} · ` : ''
+  return `${whenPart}${date} · ${title}`
+}
+
+/** Dettaglio espanso: data su riga dedicata, sotto titolo e meta. */
+export function formatCalendarioExpandedMeta(row: CalendarioRow): string {
+  const date = formatCalendarioCardDate(row.sortIso)
+  if (row.kind === 'google') {
+    const time = row.google?.whenLabel?.trim() ?? ''
+    const parts = [date]
+    if (time) parts.push(time)
+    parts.push('Google')
+    return parts.join(' · ')
+  }
+  const when = homeDeadlineWhenWord(row.sortIso)
+  return when ? `${when} · ${date}` : date
 }
 
 export function writeCalendarioVisibleIds(ids: Iterable<string>) {

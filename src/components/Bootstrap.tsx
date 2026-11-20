@@ -17,10 +17,7 @@ import {
 import { updateDataFingerprint } from '../utils/dataFingerprint'
 import { saveAutoSnapshot, tryAutoRestore } from '../utils/backup'
 import { runCloudStartupSync } from '../utils/cloudBackup'
-import {
-  restorePersistedConnections,
-  resumeGoogleCalendarConnection,
-} from '../utils/connectionBootstrap'
+import { ensureAuthBootstrapped } from '../utils/connectionBootstrap'
 import { installAutoCloudSyncHooks, installPeriodicCloudReconcile } from '../utils/autoCloudSync'
 import { appStorageKey } from '../constants/storageScope'
 
@@ -96,13 +93,11 @@ export function Bootstrap() {
         installAutoCloudSyncHooks()
         installPeriodicCloudReconcile()
 
-        // Credenziali GitHub + calendario (URL → localStorage → OPFS → IDB).
         try {
-          await restorePersistedConnections()
+          await ensureAuthBootstrapped()
         } catch (err) {
           console.error('[Auth] Credenziali non recuperate:', err)
         }
-        resumeGoogleCalendarConnection()
         if (cancelled) return
 
         // Recupero automatico: se il DB è vuoto ma esiste uno snapshot,
